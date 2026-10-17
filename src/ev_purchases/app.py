@@ -3,18 +3,52 @@ import pandas as pd
 from fastapi import FastAPI
 from pydantic import BaseModel
 import joblib
+from ev_purchases.feature_engineering import engineer_features
+from lightgbm import LGBMClassifier
 
-bundle = joblib.load("./models/model.joblib")
-features = bundle["features"]
-
-
-# class User(BaseModel):
+class ClientData(BaseModel):
+    age: int
+    income: float
+    daily_commute: float
+    cars: int
+    concern: float
+    home_charging: str       # "yes"/"no"
+    range_anxiety: str       # "low"/"medium"/"high"
+    current_car: str
+    subsidy: str             # "yes"/"no"
+    stations_near_home: int
+    stations_near_work: int
+    city_type: str
 
 app = FastAPI()
+bundle = joblib.load("./models/model.joblib")
+model: LGBMClassifier = bundle["model"]
+features = bundle["features"]
+dtypes = bundle["dtypes"]
 
-@app.get("/score")
-def score():
-    approved = np.random.choice([True, False])
-    return {"approved": bool(approved)}
+def to_frame(d: ClientData) -> pd.DataFrame:
+    raw = pd.DataFrame([{
+        "Age": d.age,
+        "Annual_Income_USD": d.income,
+        "Daily_Commute_km": d.daily_commute,
+        "Number_of_Cars_Owned": d.cars,
+        "Charging_Stations_Near_Home": d.stations_near_home,
+        "Charging_Stations_Near_Work": d.stations_near_work,
+        "Environmental_Concern_Level": d.concern,
+        "City_Type": d.city_type,
+        "Current_Car_Type": d.current_car,
+        "Home_Charging_Possible": d.home_charging,
+        "Subsidy_Available": d.subsidy,
+        "Range_Anxiety_Level": d.range_anxiety,
+    }])
+    X = engineer_features(raw)[features]          # same columns, same order
+    return X.astype(dtypes)  
+
+
+@app.post("/score")
+def score(data: ClientData):
+    prediction = model.predict_proba(to_frame(data))[0,1]
+    label = bool(prediction >= 0.5)
+    return {"approved": bool(label)}
 
 
