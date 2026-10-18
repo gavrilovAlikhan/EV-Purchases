@@ -1,23 +1,23 @@
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
 import joblib
 from ev_purchases.feature_engineering import engineer_features
 from lightgbm import LGBMClassifier
 
 class ClientData(BaseModel):
-    age: int
-    income: float
-    daily_commute: float
-    cars: int
-    concern: float
+    age: int = Field(gt=0, lt=120)
+    income: float = Field(gt=0)
+    daily_commute: float = Field(gt=0)
+    cars: int = Field(gt=0)
+    concern: float = Field(gt=0)
     home_charging: str       # "yes"/"no"
     range_anxiety: str       # "low"/"medium"/"high"
     current_car: str
     subsidy: str             # "yes"/"no"
-    stations_near_home: int
-    stations_near_work: int
+    stations_near_home: int = Field(gt=0)
+    stations_near_work: int = Field(gt=0)
     city_type: str
 
 app = FastAPI()

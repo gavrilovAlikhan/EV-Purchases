@@ -1,7 +1,6 @@
-import joblib
+# async def make_tea():
+#     print('Kettle on')
+#     await 
 
 
-bundle = joblib.load("./models/model.joblib")
-model, features, dtypes = bundle["model"], bundle["features"], bundle["dtypes"]
-
-print(dtypes)
+# await make_tea()
