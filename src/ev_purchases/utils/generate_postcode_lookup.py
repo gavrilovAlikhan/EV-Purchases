@@ -42,6 +42,6 @@ def generate_postcode_station_lookup(rng, df:pd.DataFrame, n:int, station_type: 
         a=list(city_stations_probabilities[city_choice].keys()),
         p=list(city_stations_probabilities[city_choice].values())
         )
-        postcodes_dict[p] = int(home_stations)
+        postcodes_dict[p] = {'City_Type': str(city_choice), 'Stations': int(home_stations)}
 
     return postcodes_dict
