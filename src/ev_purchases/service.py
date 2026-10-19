@@ -64,6 +64,11 @@ class ClientData(BaseModel):
     home_postcode: str
     work_postcode: str
 
+    @field_validator("home_charging", "range_anxiety", "subsidy", "current_car")
+    @classmethod
+    def uppercase(cls, v: str) -> str:
+        return v.capitalize()
+
 
 class EnrichedClientData(ClientData):
     stations_near_home: int
