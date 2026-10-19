@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 from fastapi import FastAPI
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, field_serializer
 import joblib
 from ev_purchases.feature_engineering import engineer_features
 from lightgbm import LGBMClassifier
@@ -57,17 +57,21 @@ class ClientData(BaseModel):
     daily_commute: float = Field(gt=0)
     cars: int = Field(gt=0)
     concern: float = Field(gt=0)
-    home_charging: str  # "yes"/"no"
+    home_charging: bool  # "yes"/"no"
     range_anxiety: str  # "low"/"medium"/"high"
     current_car: str
-    subsidy: str  # "yes"/"no"
+    subsidy: bool  # "yes"/"no"
     home_postcode: str
     work_postcode: str
 
-    @field_validator("home_charging", "range_anxiety", "subsidy", "current_car")
+    @field_validator("range_anxiety", "current_car")
     @classmethod
     def uppercase(cls, v: str) -> str:
         return v.capitalize()
+
+    @field_serializer("home_charging", "subsidy")
+    def yes_no_converter(self, v: bool) -> str:
+        return "Yes" if v else "No"
 
 
 class EnrichedClientData(ClientData):
