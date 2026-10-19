@@ -65,11 +65,14 @@ if submitted:
         "home_postcode": home_postcode,
         "work_postcode": work_postcode,
     }
-    
+
     response = requests.post("http://127.0.0.1:8000/score", json=data)
+    proba = response.json()['proba']
     if response.json()['approved']:
         st.success("Thank you for your interest, we will review you form", icon=":material/check_circle:")
+        st.info(f"The customer likely will make a purchase. Model purchase probability: {proba:.3f}")
     else:
         st.success("Thank you for your interest, we will review you form", icon=":material/check_circle:")
+        st.info(f"The customer likely will not make a purchase. Model purchase probability: {proba:.3f}")
 
 
