@@ -119,4 +119,4 @@ def score(data: ClientData):
     )
     prediction = model.predict_proba(to_frame(enriched))[0, 1]
     label = bool(prediction >= 0.5)
-    return {"approved": bool(label)}
+    return {"approved": bool(label), "proba": prediction}
