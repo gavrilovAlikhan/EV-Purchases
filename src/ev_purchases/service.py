@@ -69,10 +69,6 @@ class ClientData(BaseModel):
     def uppercase(cls, v: str) -> str:
         return v.capitalize()
 
-    @field_serializer("home_charging", "subsidy")
-    def yes_no_converter(self, v: bool) -> str:
-        return "Yes" if v else "No"
-
 
 class EnrichedClientData(ClientData):
     stations_near_home: int
@@ -93,8 +89,8 @@ def to_frame(d: EnrichedClientData) -> pd.DataFrame:
                 "Environmental_Concern_Level": d.concern,
                 "City_Type": d.city_type,
                 "Current_Car_Type": d.current_car,
-                "Home_Charging_Possible": d.home_charging,
-                "Subsidy_Available": d.subsidy,
+                "Home_Charging_Possible": "Yes" if d.home_charging else "No",
+                "Subsidy_Available": "Yes" if d.subsidy else "No",
                 "Range_Anxiety_Level": d.range_anxiety,
             }
         ]
