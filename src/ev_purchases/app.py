@@ -16,14 +16,14 @@ with st.form("ev_form", border=False):
     with st.container(border=True):
         st.subheader("About you", icon=":material/person:")
         c1, c2 = st.columns(2)
-        age = c1.number_input("Age", min_value=18)
-        income = c2.number_input("Annual income ($)", min_value=0.0, step=1000.0)
+        age = c1.number_input("Age", min_value=18, value=None, placeholder="18")
+        income = c2.number_input("Annual income ($)", min_value=0.0, value=None, step=1000.0, placeholder="e.g. 39000")
 
     with st.container(border=True):
         st.subheader("Driving habits", icon=":material/directions_car:")
         c1, c2 = st.columns(2)
-        daily_commute = c1.number_input("Daily commute (km)", min_value=0)
-        cars = c2.number_input("Cars owned", min_value=0)
+        daily_commute = c1.number_input("Daily commute (km)", min_value=0, value=None)
+        cars = c2.number_input("Cars owned", min_value=0, value=None)
         current_car = st.segmented_control(
             "Current car type", ["Sedan", "SUV", "Hatchback", "Truck"]
         )
@@ -67,12 +67,20 @@ if submitted:
     }
 
     response = requests.post("http://127.0.0.1:8000/score", json=data)
-    proba = response.json()['proba']
-    if response.json()['approved']:
+    if not response.ok:
+        st.error(f"Scoring failed ({response.status_code})", icon=":material/error:")
+        st.json(response.json() if response.headers.get("content-type") == "application/json" else response.text)
+        st.stop()
+
+    result = response.json()
+    proba = result['proba']
+    if result['approved']:
         st.success("Thank you for your interest, we will review you form", icon=":material/check_circle:")
         st.info(f"The customer likely will make a purchase. Model purchase probability: {proba:.3f}")
     else:
         st.success("Thank you for your interest, we will review you form", icon=":material/check_circle:")
         st.info(f"The customer likely will not make a purchase. Model purchase probability: {proba:.3f}")
 
+# TODO: remove default values from the form fields and replace with "placeholder" argument
 
+# TODO: add validation of the form to not allow empty fields
