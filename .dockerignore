@@ -1,0 +1,29 @@
+# Environment
+.venv/
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Notebooks
+.ipynb_checkpoints/
+notebooks/
+
+# Training output
+catboost_info/
+
+# Raw data (keep processed/ if the app reads it)
+data/raw/
+
+# Git and editor
+.git/
+.gitignore
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Docker files themselves
+Dockerfile
+docker-compose.yml
+.dockerignore
