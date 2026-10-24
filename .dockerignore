@@ -14,7 +14,7 @@ notebooks/
 catboost_info/
 
 # Raw data (keep processed/ if the app reads it)
-data/raw/
+# data/raw/
 
 # Git and editor
 .git/
