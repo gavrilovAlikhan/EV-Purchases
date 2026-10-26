@@ -4,6 +4,7 @@ FROM python:3.14-slim
 # Install uv directly via official (faster)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+# For lgbm / catboost
 RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
