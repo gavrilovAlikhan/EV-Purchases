@@ -2,9 +2,9 @@ import streamlit as st
 import requests
 import os
 
-API_URL = os.getenv("API_URL", "http://127.0.0.1:8000/postcodes")
+API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
-postcodes_json = requests.get(f"{API_URL}").json()
+postcodes_json = requests.get(f"{API_URL}/postcodes").json()
 
 
 st.set_page_config(page_title="EV bonus check", page_icon=":material/electric_car:")
@@ -69,7 +69,7 @@ if submitted:
         "work_postcode": work_postcode,
     }
 
-    response = requests.post(f"{API_URL}", json=data)
+    response = requests.post(f"{API_URL}/score", json=data)
     if not response.ok:
         st.error(f"Scoring failed ({response.status_code})", icon=":material/error:")
         st.json(response.json() if response.headers.get("content-type") == "application/json" else response.text)

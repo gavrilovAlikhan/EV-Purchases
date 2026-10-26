@@ -10,6 +10,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
 
 WORKDIR /app
 
+ENV PATH="/app/.venv/bin:$PATH"
+
 COPY pyproject.toml uv.lock ./
 
 # --frozen to strictly check uv.lock
