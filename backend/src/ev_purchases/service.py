@@ -10,7 +10,7 @@ from pathlib import Path
 from ev_purchases.utils.generate_postcode_lookup import generate_postcode_station_lookup
 
 # File loading
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 df = load_data(ROOT / "data/raw/train.csv")
 
 # Postcode lookup variables
