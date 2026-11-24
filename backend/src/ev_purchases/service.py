@@ -130,5 +130,9 @@ def score(data: ClientData):
 def explain(data: ClientData):
     enriched = enrich_data(data)
     sv = explainer(enriched)
-    shap_dict = dict(zip(sv.feature_names, sv.values[0]))
-    return shap_dict
+    return {
+        "base_value": float(np.ravel(sv.base_values)[0]),
+        "feature_names": list(sv.feature_names),
+        "shap_values": sv.values[0].tolist(),
+        "feature_values": enriched.iloc[0].astype(str).tolist(),
+    }
