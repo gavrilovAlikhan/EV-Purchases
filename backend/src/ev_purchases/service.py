@@ -8,7 +8,7 @@ from lightgbm import LGBMClassifier
 from ev_purchases.data_loader import load_data
 from pathlib import Path
 from ev_purchases.utils.generate_postcode_lookup import generate_postcode_station_lookup
-
+import shap
 # File loading
 ROOT = Path(__file__).resolve().parents[3]
 df = load_data(ROOT / "data/raw/train.csv")
@@ -23,10 +23,11 @@ work_postcodes = generate_postcode_station_lookup(
 )
 
 # Model values
-bundle = joblib.load(ROOT / "models/model.joblib")
+bundle = joblib.load(ROOT / "models/model_v2.joblib")
 model: LGBMClassifier = bundle["model"]
 features = bundle["features"]
 dtypes = bundle["dtypes"]
+explainer = shap.TreeExplainer(model)
 
 app = FastAPI()
 
@@ -98,6 +99,17 @@ def to_frame(d: EnrichedClientData) -> pd.DataFrame:
     X = engineer_features(raw)[features]  # same columns, same order
     return X.astype(dtypes)
 
+def enrich_data(data: ClientData) -> pd.DataFrame:
+    h_stations, city_type = home_postcode_lookup(data.home_postcode)
+    w_stations = work_postcode_lookup(data.work_postcode)
+
+    enriched = EnrichedClientData(
+        **data.model_dump(),
+        stations_near_home=h_stations,
+        city_type=city_type,
+        stations_near_work=w_stations,
+    )
+    return to_frame(enriched)
 
 @app.get("/postcodes")
 def return_dict():
@@ -109,14 +121,14 @@ def return_dict():
 
 @app.post("/score")
 def score(data: ClientData):
-    h_stations, city_type = home_postcode_lookup(data.home_postcode)
-    w_stations = work_postcode_lookup(data.work_postcode)
-    enriched = EnrichedClientData(
-        **data.model_dump(),
-        stations_near_home=h_stations,
-        city_type=city_type,
-        stations_near_work=w_stations,
-    )
-    prediction = model.predict_proba(to_frame(enriched))[0, 1]
+    enriched = enrich_data(data)
+    prediction = model.predict_proba(enriched)[0, 1]
     label = bool(prediction >= 0.5)
     return {"approved": bool(label), "proba": prediction}
+
+@app.post("/explain")
+def explain(data: ClientData):
+    enriched = enrich_data(data)
+    sv = explainer(enriched)
+    shap_dict = dict(zip(sv.feature_names, sv.values[0]))
+    return shap_dict
