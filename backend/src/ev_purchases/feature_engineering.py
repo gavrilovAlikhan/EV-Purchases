@@ -4,6 +4,10 @@ import numpy as np
 
 def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     eng_df = df.copy()
+
+    if "Gender" in eng_df.columns:
+        eng_df = eng_df.drop(columns="Gender")
+
     for c in ["Home_Charging_Possible", "Subsidy_Available"]:
         eng_df[c] = eng_df[c].str.lower().map({"no": 0, "yes": 1})
 
@@ -51,5 +55,9 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     eng_df["home_charging_subsidy"] = (
         eng_df["Home_Charging_Possible"] * eng_df["Subsidy_Available"]
     )
+
+    eng_df[["City_Type", "Current_Car_Type", "Anxiety_Environmental"]] = eng_df[
+        ["City_Type", "Current_Car_Type", "Anxiety_Environmental"]
+    ].astype("category")
 
     return eng_df
