@@ -1,0 +1,20 @@
+parameters:
+  n_estimators: 2122
+  max_depth: 4
+  learning_rate: 0.03597271512159211
+  num_leaves: 16
+  min_child_samples: 193
+  subsample: 0.9146558054022962
+  subsample_freq: 1
+  colsample_bytree: 0.5675296747189175
+  reg_alpha: 6.202845357521301e-08
+  reg_lambda: 0.00015263204457498
+  random_state: 42
+  objective: binary
+  verbose: -1
+
+data:
+  train_path: data/processed/train.csv
+  target: Will_Buy_EV
+  categorical_features: ["City_Type", "Current_Car_Type", "Anxiety_Environmental"]
+  non_relevant_columns: ['id', 'source']
