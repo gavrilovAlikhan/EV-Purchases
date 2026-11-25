@@ -17,4 +17,4 @@ data:
   train_path: data/processed/train.csv
   target: Will_Buy_EV
   categorical_features: ["City_Type", "Current_Car_Type", "Anxiety_Environmental"]
-  non_relevant_columns: ['id', 'source']
+  non_relevant_columns: ['id']
