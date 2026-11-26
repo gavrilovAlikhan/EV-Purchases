@@ -7,7 +7,15 @@ import plotly.graph_objects as go
 import numpy as np
 
 API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
-postcodes_json = requests.get(f"{API_URL}/postcodes").json()
+
+
+@st.cache_data
+def get_postcodes() -> dict:
+    # Cached: without a form, every widget change reruns the script.
+    return requests.get(f"{API_URL}/postcodes").json()
+
+
+postcodes_json = get_postcodes()
 sigmoid = lambda z: 1 / (1 + np.exp(-z))
 
 
@@ -86,7 +94,9 @@ st.caption(
 )
 
 
-with st.form("ev_form", border=False):
+# Plain container instead of st.form: a form only reruns on submit, so the
+# button could not be enabled/disabled live as fields are filled in.
+with st.container():
     # 2x2 grid of sections so the whole form fits on one screen.
     # height="stretch" keeps the two cards in each row the same height.
     row1 = st.columns(2)
@@ -95,7 +105,7 @@ with st.form("ev_form", border=False):
     with row1[0].container(border=True, height="stretch"):
         st.subheader("About you", icon=":material/person:")
         c1, c2 = st.columns(2)
-        age = c1.number_input("Age", min_value=18, value=None, placeholder="18")
+        age = c1.number_input("Age", min_value=18, max_value=120, value=None, placeholder="18")
         income = c2.number_input(
             "Annual income ($)",
             min_value=0.0,
@@ -117,10 +127,16 @@ with st.form("ev_form", border=False):
         st.subheader("Location", icon=":material/location_on:")
         c1, c2 = st.columns(2)
         home_postcode = c1.selectbox(
-            "Home postcode", options=postcodes_json["Home_Postcodes"]
+            "Home postcode",
+            options=postcodes_json["Home_Postcodes"],
+            index=None,
+            placeholder="Select postcode",
         )
         work_postcode = c2.selectbox(
-            "Work postcode", options=postcodes_json["Work_Postcodes"]
+            "Work postcode",
+            options=postcodes_json["Work_Postcodes"],
+            index=None,
+            placeholder="Select postcode",
         )
 
     with row2[1].container(border=True, height="stretch"):
@@ -136,9 +152,30 @@ with st.form("ev_form", border=False):
         home_charging = c1.toggle("I can charge at home")
         subsidy = c2.toggle("I already receive a government subsidy")
 
-    submitted = st.form_submit_button(
-        "Check eligibility", type="primary", icon=":material/send:", width="stretch"
+    # Range limits are enforced by the widgets themselves, so a field is
+    # valid as soon as it has a value (None means empty / deselected).
+    required = {
+        "Age": age,
+        "Annual income": income,
+        "Daily commute": daily_commute,
+        "Cars owned": cars,
+        "Current car type": current_car,
+        "Home postcode": home_postcode,
+        "Work postcode": work_postcode,
+        "Environmental concern": concern,
+        "Range anxiety": range_anxiety,
+    }
+    missing = [name for name, value in required.items() if value is None]
+
+    submitted = st.button(
+        "Check eligibility",
+        type="primary",
+        icon=":material/send:",
+        width="stretch",
+        disabled=bool(missing),
     )
+    if missing:
+        st.caption(f"Still to fill in: {', '.join(missing)}")
 
 if submitted:
     data = {
@@ -151,18 +188,20 @@ if submitted:
         "range_anxiety": range_anxiety,
         "current_car": current_car,
         "subsidy": subsidy,
-        "home_postcode": home_postcode,
-        "work_postcode": work_postcode,
+        # strip the suffix since API looks postcodes up by the bare code.
+        "home_postcode": home_postcode.split(" (")[0],
+        "work_postcode": work_postcode.split(" (")[0],
     }
 
     response = requests.post(f"{API_URL}/score", json=data)
     if not response.ok:
         st.error(f"Scoring failed ({response.status_code})", icon=":material/error:")
-        st.json(
-            response.json()
-            if response.headers.get("content-type") == "application/json"
-            else response.text
-        )
+        # st.json would try to parse a plain-text body (e.g. "Internal Server
+        # Error") as JSON and fail, so only use it for real JSON responses.
+        if response.headers.get("content-type", "").startswith("application/json"):
+            st.json(response.json())
+        else:
+            st.code(response.text, language=None)
         st.stop()
 
     sv = requests.post(f"{API_URL}/explain", json=data)
@@ -188,5 +227,3 @@ if submitted:
 
     draw_waterfall(sv.json())
 # TODO: remove default values from the form fields and replace with "placeholder" argument
-
-# TODO: add validation of the form to not allow empty fields
