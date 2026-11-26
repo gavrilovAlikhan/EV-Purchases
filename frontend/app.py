@@ -9,17 +9,16 @@ import numpy as np
 API_URL = os.getenv("API_URL", "http://127.0.0.1:8000")
 
 
-@st.cache_data
+# @st.cache_data # uncomment to cache the postcodes lookup, but cache should be cleared if postcodes are updated
 def get_postcodes() -> dict:
-    # Cached: without a form, every widget change reruns the script.
     return requests.get(f"{API_URL}/postcodes").json()
 
 
 postcodes_json = get_postcodes()
-sigmoid = lambda z: 1 / (1 + np.exp(-z))
+sigmoid = lambda z: 1 / (1 + np.exp(-z)) # needed for shap
 
 
-def draw_waterfall(res: dict):
+def draw_waterfall(res: dict): # feature importance chart
 
     # --- Sort by absolute impact, top 10 + rest ---
     items = sorted(
