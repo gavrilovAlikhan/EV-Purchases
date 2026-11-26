@@ -68,7 +68,7 @@ def train():
         "dtypes": X.dtypes.astype(str).to_dict(),  # type of each feature
     }
 
-    joblib.dump(bundle, f"{model_path}model_test.joblib")
+    joblib.dump(bundle, f"{model_path}model.joblib")
     print(f"\nModel saved to {model_path}")
 
 if __name__ == "__main__":

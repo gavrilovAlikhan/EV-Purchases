@@ -24,7 +24,7 @@ work_postcodes = generate_postcode_station_lookup(
 )
 
 # Model values
-bundle = joblib.load(ROOT / "models/model_v2.joblib")
+bundle = joblib.load(ROOT / "models/model.joblib")
 model: LGBMClassifier = bundle["model"]
 features = bundle["features"]
 dtypes = bundle["dtypes"]
