@@ -76,7 +76,9 @@ def draw_waterfall(res: dict):
     )
     st.plotly_chart(fig, use_container_width=True)
 
-st.set_page_config(page_title="EV bonus check", page_icon=":material/electric_car:")
+st.set_page_config(
+    page_title="EV bonus check", page_icon=":material/electric_car:", layout="wide"
+)
 
 st.title("EV purchase bonus", icon=":material/electric_car:")
 st.caption(
@@ -85,7 +87,12 @@ st.caption(
 
 
 with st.form("ev_form", border=False):
-    with st.container(border=True):
+    # 2x2 grid of sections so the whole form fits on one screen.
+    # height="stretch" keeps the two cards in each row the same height.
+    row1 = st.columns(2)
+    row2 = st.columns(2)
+
+    with row1[0].container(border=True, height="stretch"):
         st.subheader("About you", icon=":material/person:")
         c1, c2 = st.columns(2)
         age = c1.number_input("Age", min_value=18, value=None, placeholder="18")
@@ -97,16 +104,16 @@ with st.form("ev_form", border=False):
             placeholder="e.g. 39000",
         )
 
-    with st.container(border=True):
+    with row1[1].container(border=True, height="stretch"):
         st.subheader("Driving habits", icon=":material/directions_car:")
-        c1, c2 = st.columns(2)
+        c1, c2, c3 = st.columns([1, 1, 2])
         daily_commute = c1.number_input("Daily commute (km)", min_value=0, value=None)
         cars = c2.number_input("Cars owned", min_value=0, value=None)
-        current_car = st.segmented_control(
+        current_car = c3.segmented_control(
             "Current car type", ["Sedan", "SUV", "Hatchback", "Truck"]
         )
 
-    with st.container(border=True):
+    with row2[0].container(border=True, height="stretch"):
         st.subheader("Location", icon=":material/location_on:")
         c1, c2 = st.columns(2)
         home_postcode = c1.selectbox(
@@ -116,14 +123,18 @@ with st.form("ev_form", border=False):
             "Work postcode", options=postcodes_json["Work_Postcodes"]
         )
 
-    with st.container(border=True):
+    with row2[1].container(border=True, height="stretch"):
         st.subheader("Your views", icon=":material/eco:")
-        concern = st.segmented_control(
+        c1, c2 = st.columns(2)
+        concern = c1.segmented_control(
             "Environmental concern", [1, 2, 3, 4, 5], default=1
         )
-        range_anxiety = st.segmented_control("Range anxiety", ["Low", "Medium", "High"])
-        home_charging = st.toggle("I can charge at home")
-        subsidy = st.toggle("I already receive a government subsidy")
+        range_anxiety = c2.segmented_control(
+            "Range anxiety", ["Low", "Medium", "High"]
+        )
+        c1, c2 = st.columns(2)
+        home_charging = c1.toggle("I can charge at home")
+        subsidy = c2.toggle("I already receive a government subsidy")
 
     submitted = st.form_submit_button(
         "Check eligibility", type="primary", icon=":material/send:", width="stretch"
