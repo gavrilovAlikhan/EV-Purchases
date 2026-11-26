@@ -9,6 +9,7 @@ from ev_purchases.data_loader import load_data
 from pathlib import Path
 from ev_purchases.utils.generate_postcode_lookup import generate_postcode_station_lookup
 import shap
+
 # File loading
 ROOT = Path(__file__).resolve().parents[3]
 df = load_data(ROOT / "data/raw/train.csv")
@@ -99,6 +100,7 @@ def to_frame(d: EnrichedClientData) -> pd.DataFrame:
     X = engineer_features(raw)[features]  # same columns, same order
     return X.astype(dtypes)
 
+
 def enrich_data(data: ClientData) -> pd.DataFrame:
     h_stations, city_type = home_postcode_lookup(data.home_postcode)
     w_stations = work_postcode_lookup(data.work_postcode)
@@ -111,11 +113,18 @@ def enrich_data(data: ClientData) -> pd.DataFrame:
     )
     return to_frame(enriched)
 
+
 @app.get("/postcodes")
 def return_dict():
+
     return {
-        "Home_Postcodes": list(home_postcodes),
-        "Work_Postcodes": list(work_postcodes),
+        "Home_Postcodes": [
+            f"{k} (City Type: {v['City_Type']}, ⚡Stations: {v['Stations']})"
+            for k, v in home_postcodes.items()
+        ],
+        "Work_Postcodes": [
+            f"{k} (⚡Stations: {v['Stations']})" for k, v in work_postcodes.items()
+        ],
     }
 
 
@@ -125,6 +134,7 @@ def score(data: ClientData):
     prediction = model.predict_proba(enriched)[0, 1]
     label = bool(prediction >= 0.5)
     return {"approved": bool(label), "proba": prediction}
+
 
 @app.post("/explain")
 def explain(data: ClientData):
